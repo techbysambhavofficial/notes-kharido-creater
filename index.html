@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes-Kharido | Perfect Pagination</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Patrick+Hand&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --paper-bg: #ffffff;
+            --line-color: #a5d1eb;
+            --margin-red: #ff7675;
+            --ink-blue: #0047ab; 
+            --grid-size: 36px;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; margin: 0; display: flex; overflow: hidden; }
+
+        #sidebar {
+            width: 380px; height: 100vh; background: #252525; color: #fff; padding: 20px;
+            position: fixed; border-right: 2px solid #444; box-sizing: border-box; overflow-y: auto; z-index: 100;
+        }
+
+        textarea { 
+            width: 100%; height: 350px; background: #333; color: #fff; border: 1px solid #555; 
+            padding: 12px; border-radius: 8px; font-family: monospace; resize: none; margin-bottom: 15px;
+        }
+
+        #main { margin-left: 380px; width: calc(100% - 380px); height: 100vh; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; background: #111;}
+
+        .page {
+            width: 794px; height: 1123px;
+            background: var(--paper-bg);
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            margin-bottom: 50px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .page-header { 
+            height: 130px; border-bottom: 2px solid var(--margin-red); 
+            display: flex; align-items: center; justify-content: center; background: #fff; flex-shrink: 0;
+        }
+        .brand { font-family: 'Dancing Script', cursive; font-size: 45px; color: var(--margin-red); }
+
+        .ruled-body {
+            flex-grow: 1; width: 100%;
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-size: 100% var(--grid-size);
+            position: relative;
+        }
+
+        /* FIXED BOTTOM MARGIN */
+        .page-footer-guard { 
+            height: 110px; background: white; z-index: 20; border-top: 1px solid #eee; flex-shrink: 0;
+        }
+
+        .red-line { position: absolute; left: 80px; top: 0; bottom: 0; width: 2px; background: var(--margin-red); z-index: 5; }
+
+        .text-layer {
+            padding: 0 45px 0 100px; color: var(--ink-blue);
+            text-align: left; white-space: pre-wrap; word-wrap: break-word;
+            font-size: 25px; line-height: var(--grid-size);
+            position: relative; top: -4px;
+            outline: none;
+        }
+
+        .hand-drawn-box {
+            display: inline-block; text-align: center;
+            border: 3px solid #000; height: calc(var(--grid-size) * 2 - 10px);
+            padding: 0 15px; margin: 5px 0; font-weight: bold; color: #000;
+            background: #fff; border-radius: 5px 12px 4px 15px;
+            line-height: calc(var(--grid-size) * 2 - 10px);
+            vertical-align: middle;
+        }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: white; }
+        .btn-refresh { background: #6c5ce7; }
+        .btn-pdf { background: #0984e3; }
+        .btn-zip { background: #e67e22; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2 style="color:var(--margin-red); font-family:'Dancing Script'; margin:0;">Notes-Kharido</h2>
+    <p style="font-size:11px; color:#888;">Live editing enabled on pages.</p>
+    
+    <textarea id="rawInput" placeholder="Paste text here...">[box] MACHINE LEARNING [/box]
+Enter your content here. This engine will now automatically wrap long sentences and move them to a new page before hitting the margin.</textarea>
+    
+    <button class="btn btn-refresh" onclick="renderPages()">1. Update Preview</button>
+    <button class="btn btn-pdf" onclick="exportPDF()">2. Download PDF</button>
+    <button class="btn btn-zip" onclick="exportZIP()">3. Download ZIP</button>
+</div>
+
+<div id="main">
+    <div id="page-container"></div>
+    <div id="measure" style="position:absolute; visibility:hidden; width:649px; font-size:25px; line-height:36px; white-space:pre-wrap; font-family:'Patrick Hand';"></div>
+</div>
+
+<script>
+function renderPages() {
+    const container = document.getElementById('page-container');
+    const measurer = document.getElementById('measure');
+    container.innerHTML = '';
+    
+    const rawInput = document.getElementById('rawInput').value;
+    const lines = rawInput.split('\n');
+    
+    let currentPage = createPage();
+    container.appendChild(currentPage);
+    let currentLayer = currentPage.querySelector('.text-layer');
+    
+    const maxBodyHeight = 880; // Total height allowed for text (px)
+    let currentHeight = 0;
+
+    lines.forEach(line => {
+        const isBox = line.includes('[box]');
+        const processedLine = line.replace(/\[box\](.*?)\[\/box\]/g, '<span class="hand-drawn-box">$1</span>');
+        
+        // Measure height of this line/paragraph
+        measurer.innerHTML = processedLine;
+        const lineBlockHeight = measurer.offsetHeight || 36;
+
+        if (currentHeight + lineBlockHeight > maxBodyHeight) {
+            currentPage = createPage();
+            container.appendChild(currentPage);
+            currentLayer = currentPage.querySelector('.text-layer');
+            currentHeight = 0;
+        }
+
+        currentLayer.innerHTML += processedLine + '\n';
+        currentHeight += lineBlockHeight;
+    });
+}
+
+function createPage() {
+    const p = document.createElement('div');
+    p.className = 'page';
+    p.innerHTML = `
+        <div class="page-header"><div class="brand"> <img src="img.jpg" style="height:50px; vertical-align:middle;">|Notes-Kharido</div></div>
+        <div class="ruled-body">
+            <div class="red-line"></div>
+            <div class="text-layer" contenteditable="true" style="font-family:'Patrick Hand', cursive;"></div>
+        </div>
+        <div class="page-footer-guard"></div>
+    `;
+    return p;
+}
+
+async function exportPDF() {
+    const fileName = prompt("PDF Name:", "ML_Notes") || "Notes";
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pages = document.querySelectorAll('.page');
+    for (let i = 0; i < pages.length; i++) {
+        const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true });
+        if (i > 0) pdf.addPage();
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 210, 297);
+    }
+    pdf.save(`${fileName}.pdf`);
+}
+
+async function exportZIP() {
+    const zipName = prompt("ZIP Name:", "ML_Images") || "Images";
+    const zip = new JSZip();
+    const pages = document.querySelectorAll('.page');
+    for (let i = 0; i < pages.length; i++) {
+        const canvas = await html2canvas(pages[i], { scale: 2 });
+        const imgData = canvas.toDataURL('image/png').split(',')[1];
+        zip.file(`${zipName}_Page_${i+1}.png`, imgData, {base64: true});
+    }
+    zip.generateAsync({type:"blob"}).then(blob => saveAs(blob, `${zipName}.zip`));
+}
+
+renderPages();
+</script>
+</body>
+</html>
