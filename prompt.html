@@ -1,0 +1,351 @@
+[box]APPLICATION AND ENVIRONMENT SETUP (COMPLETE DETAILED)[/box]
+
+INTRODUCTION TO MACHINE LEARNING:
+
+Machine Learning (ML) is a subset of Artificial Intelligence (AI) that allows systems to automatically learn and improve from experience without being explicitly programmed.
+
+Instead of writing fixed rules, we provide data, and the system learns patterns from that data.
+
+Example:
+Instead of writing:
+IF email contains "win money" → spam
+
+We train a model using thousands of emails.
+
+
+[box]APPLICATIONS OF MACHINE LEARNING[/box]
+
+Machine Learning is widely used in real-world applications:
+
+1. MEDICAL SCIENCE:
+
+- Disease prediction (Diabetes, Cancer)
+- Image analysis (MRI, X-rays)
+- Drug discovery
+
+Example Problem:
+Given patient data (age, glucose level, BMI), predict whether the patient has diabetes.
+
+Possible ML Solution:
+Use classification algorithms like Logistic Regression or Decision Trees.
+
+
+2. AGRICULTURE:
+
+- Crop prediction
+- Soil quality analysis
+- Pest detection
+
+Example:
+Predict crop yield using rainfall and temperature data.
+
+
+3. AUTOMOBILE:
+
+- Self-driving cars
+- Object detection
+- Lane detection
+
+ML Model:
+Computer Vision using OpenCV + Deep Learning
+
+
+4. MINING:
+
+- Mineral detection
+- Safety prediction
+
+Example:
+Predict mine collapse probability.
+
+
+5. FINANCE:
+
+- Fraud detection
+- Credit scoring
+- Stock prediction
+
+
+6. E-COMMERCE:
+
+- Recommendation systems
+- Customer segmentation
+
+Example:
+Recommend products based on user behavior.
+
+
+[box]SUPERVISED VS UNSUPERVISED LEARNING[/box]
+
+SUPERVISED LEARNING:
+
+Definition:
+Training data contains input-output pairs.
+
+Goal:
+Learn mapping function f(x) → y
+
+Example:
+House price prediction
+
+Types:
+- Regression
+- Classification
+
+
+UNSUPERVISED LEARNING:
+
+Definition:
+No labeled output is provided.
+
+Goal:
+Find patterns in data.
+
+Example:
+Customer segmentation
+
+
+[box]UNDERSTANDING IRIS DATASET (FULL ANALYSIS)[/box]
+
+IRIS dataset is one of the most popular datasets in Machine Learning.
+
+Features:
+- Sepal Length
+- Sepal Width
+- Petal Length
+- Petal Width
+
+Classes:
+- Setosa
+- Versicolor
+- Virginica
+
+Total Samples: 150
+
+
+STEP-BY-STEP PROBLEM SOLVING:
+
+from sklearn.datasets import load_iris
+
+data = load_iris()
+X = data.data
+y = data.target
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+from sklearn.tree import DecisionTreeClassifier
+
+model = DecisionTreeClassifier()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+from sklearn.metrics import accuracy_score
+
+print(accuracy_score(y_test, y_pred))
+
+
+[box]PYTHON LIBRARIES FOR MACHINE LEARNING[/box]
+
+NUMPY:
+Used for numerical operations.
+
+SCIPY:
+Scientific computing.
+
+SCIKIT-LEARN:
+ML algorithms.
+
+OPENCV:
+Image processing.
+
+PANDAS:
+Data handling.
+
+MATPLOTLIB:
+Visualization.
+
+
+[box]ENVIRONMENT SETUP[/box]
+
+pip install numpy pandas matplotlib scikit-learn opencv-python
+
+pip install notebook
+
+jupyter notebook
+
+
+[box]REGRESSION (FULL COMPLETE DETAILED)[/box]
+
+INTRODUCTION:
+Regression predicts continuous values.
+
+Example:
+- House price
+- Salary
+
+
+[box]LINEAR REGRESSION[/box]
+
+Equation:
+y = mx + c
+
+Cost Function:
+J(m,c) = (1/n) Σ (yi - ŷi)²
+
+
+NUMERICAL:
+
+X = [1,2,3]
+Y = [2,4,6]
+
+Final Equation:
+y = 2x
+
+
+CODE:
+
+from sklearn.linear_model import LinearRegression
+import numpy as np
+
+X = np.array([[1],[2],[3]])
+y = np.array([2,4,6])
+
+model = LinearRegression()
+model.fit(X, y)
+
+
+[box]NON-LINEAR REGRESSION[/box]
+
+Example:
+y = x²
+
+CODE:
+
+from sklearn.preprocessing import PolynomialFeatures
+
+poly = PolynomialFeatures(degree=2)
+X_poly = poly.fit_transform(X)
+
+
+[box]MULTIPLE LINEAR REGRESSION[/box]
+
+Equation:
+y = b0 + b1x1 + b2x2
+
+Example:
+Salary calculation
+
+
+[box]MODEL EVALUATION[/box]
+
+MAE = average error  
+MSE = squared error  
+RMSE = sqrt(MSE)  
+R² = accuracy of model
+
+
+[box]PCA (FEATURE REDUCTION)[/box]
+
+Used to reduce features while keeping information.
+
+CODE:
+
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=2)
+X_new = pca.fit_transform(X)
+
+
+[box]CLASSIFICATION (FULL COMPLETE DETAILED)[/box]
+
+Classification predicts categories.
+
+Example:
+Spam or Not Spam
+
+
+[box]KNN ALGORITHM[/box]
+
+Uses nearest neighbors.
+
+Distance:
+d = √Σ(xi - yi)²
+
+CODE:
+
+from sklearn.neighbors import KNeighborsClassifier
+
+model = KNeighborsClassifier(n_neighbors=3)
+model.fit(X, y)
+
+
+[box]DECISION TREE[/box]
+
+Uses entropy to split data.
+
+Entropy:
+E = -p log2(p)
+
+
+[box]SVM[/box]
+
+Finds best separating hyperplane.
+
+Important:
+- Kernel
+- C
+- Gamma
+
+
+[box]CONFUSION MATRIX[/box]
+
+TP, TN, FP, FN
+
+Metrics:
+- Accuracy
+- Precision
+- Recall
+- F1 Score
+
+
+[box]UNSUPERVISED LEARNING (FULL COMPLETE DETAILED)[/box]
+
+No labels → find patterns
+
+
+[box]CLUSTERING[/box]
+
+Grouping similar data.
+
+
+[box]K-MEANS[/box]
+
+Steps:
+1. Choose K
+2. Assign clusters
+3. Update centroid
+
+
+[box]ELBOW METHOD[/box]
+
+Find best K using WCSS graph.
+
+
+[box]K-MEANS CODE[/box]
+
+from sklearn.cluster import KMeans
+
+model = KMeans(n_clusters=3)
+model.fit(X)
+
+
+[box]LIMITATIONS[/box]
+
+- Need K value
+- Sensitive to outliers
+
+
+[box]END OF COMPLETE NOTES[/box]
